@@ -14,9 +14,34 @@
 
 @implementation ViewController
 
+- (AVAudioPlayer *)setupAudioPlayerWithFile:(NSString *)file type:(NSString *)type
+{
+    NSString *path = [[NSBundle mainBundle] pathForResource:file ofType:type];
+    NSURL *url = [NSURL fileURLWithPath:path];
+    
+    NSError *error;
+    
+    AVAudioPlayer *audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:url error:&error];
+    
+    if (!audioPlayer) {
+        NSLog(@"%@",[error description]);
+    }
+    
+    return audioPlayer;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+   
+    self.view.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"bg_tile.png"]];
+
+    scoreLabel.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"field_score.png"]];
+    timerLabel.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"field_time.png"]];
+    
+    buttonBeep = [self setupAudioPlayerWithFile:@"ButtonTap" type:@"wav"];
+    secondBeep = [self setupAudioPlayerWithFile:@"SecondBeep" type:@"wav"];
+    backgroundMusic = [self setupAudioPlayerWithFile:@"HallOfTheMountainKing" type:@"mp3"];
+    
     [self setupGame];
 }
 
@@ -32,6 +57,9 @@
     timerLabel.text = [NSString stringWithFormat:@"Time: %ld", seconds];
     scoreLabel.text = [NSString stringWithFormat:@"Score\n%ld", count];
     
+    [backgroundMusic setVolume:0.3];
+    [backgroundMusic play];
+    
     timer = [NSTimer scheduledTimerWithTimeInterval:1.0f
                                              target:self
                                            selector:@selector(subtractTime)
@@ -42,6 +70,8 @@
 - (void)subtractTime {
     seconds--;
     timerLabel.text = [NSString stringWithFormat:@"Time: %ld",seconds];
+    
+    [secondBeep play];
     
     if (seconds == 0) {
         [timer invalidate];
@@ -60,7 +90,8 @@
     count++;
     NSString *fun = [NSString stringWithFormat:@"Score\n%ld", count];
     scoreLabel.text = fun;
-    //scoreLabel.text =
+    
+    [buttonBeep play];
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
